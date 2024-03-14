@@ -48,7 +48,7 @@ intents.all()
 
 client = discord.Client(intents=intents)
 
-TOKEN = ''
+TOKEN = 'put the bot token here'
 
 async def deleteall(guild):
     try:
