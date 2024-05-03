@@ -1,1 +1,1 @@
-choose your option the put the guild id of the guild u want to nuke
+updated version of the old TVC nuker
